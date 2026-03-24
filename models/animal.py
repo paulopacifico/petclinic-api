@@ -32,9 +32,14 @@ class Animal(db.Model):
             return None
         hoje = date.today()
         anos = hoje.year - self.data_nascimento.year
-        if hoje < self.data_nascimento.replace(year=hoje.year):
+        aniversario = self.data_nascimento.replace(year=hoje.year)
+        if hoje < aniversario:
             anos -= 1
-        meses = (hoje.month - self.data_nascimento.month) % 12
+            aniversario = self.data_nascimento.replace(year=hoje.year - 1)
+        meses = (hoje.year - aniversario.year) * 12 + (hoje.month - aniversario.month)
+        if hoje.day < self.data_nascimento.day:
+            meses -= 1
+        meses = meses % 12
         if anos == 0 and meses == 0:
             return "menos de 1 mês"
         if anos == 0:
