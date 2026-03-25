@@ -1,32 +1,30 @@
-from flask import Flask, jsonify
+from flask import jsonify
+from flask_openapi3 import OpenAPI, Info
 from flask_cors import CORS
 from models.base import db
-import models  # noqa: F401 — registra Tutor, Animal, Consulta no SQLAlchemy
+import models
+
+info = Info(title="PetClinic API", version="1.0.0", description="Prontuário eletrônico veterinário")
 
 
-def create_app() -> Flask:
-    app = Flask(__name__)
+def create_app():
+    app = OpenAPI(__name__, info=info)
 
-    # ── Configurações ────────────────────────────────────────────────────── #
-    app.config["SQLALCHEMY_DATABASE_URI"]        = "sqlite:///petclinic.db"
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///petclinic.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.json.sort_keys = False   # preserva a ordem dos campos no JSON
+    app.json.sort_keys = False
 
-    # ── Extensões ────────────────────────────────────────────────────────── #
     db.init_app(app)
     CORS(app)
 
-    # ── Blueprints ───────────────────────────────────────────────────────── #
     from routes.tutores import bp_tutores
-    app.register_blueprint(bp_tutores)
+    from routes.animais import bp_animais
+    from routes.consultas import bp_consultas
 
-    # Fase 3 — descomente quando as rotas estiverem prontas:
-    # from routes.animais   import bp_animais
-    # from routes.consultas import bp_consultas
-    # app.register_blueprint(bp_animais)
-    # app.register_blueprint(bp_consultas)
+    app.register_api(bp_tutores)
+    app.register_api(bp_animais)
+    app.register_api(bp_consultas)
 
-    # ── Handlers globais de erro ─────────────────────────────────────────── #
     @app.errorhandler(404)
     def nao_encontrado(e):
         return jsonify({"erro": "Rota não encontrada."}), 404
@@ -39,14 +37,13 @@ def create_app() -> Flask:
     def erro_interno(e):
         return jsonify({"erro": "Erro interno no servidor."}), 500
 
-    # ── Banco de dados ───────────────────────────────────────────────────── #
     with app.app_context():
         db.create_all()
-        print("[DB] Tabelas verificadas/criadas com sucesso.")
 
     return app
 
 
+app = create_app()
+
 if __name__ == "__main__":
-    app = create_app()
-    app.run(debug=True, port=5000)
+    app.run(debug=True)
