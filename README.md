@@ -15,7 +15,7 @@ Clínicas veterinárias de pequeno e médio porte gerenciam pacientes em papel o
 
 ```bash
 # Clone o repositório
-git clone <url-do-repositorio>
+git clone https://github.com/paulopacifico/petclinic-api
 cd petclinic-api
 
 # Crie e ative o ambiente virtual
